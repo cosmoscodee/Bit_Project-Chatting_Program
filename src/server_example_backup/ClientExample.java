@@ -1,4 +1,4 @@
-package socket_server_test_chatting;
+package server_example_backup;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,8 +28,7 @@ public class ClientExample extends Application {
 					socket.connect(new InetSocketAddress("localhost", 5001));
 					Platform.runLater(() -> {
 						displayText("연결 완료: " + socket.getRemoteSocketAddress() + "]");
-						//displayText("[대화방에 참여하였습니다.]");
-						btnConn.setText("나가기");
+						btnConn.setText("stop");
 						btnSend.setDisable(false);
 					});
 
@@ -50,8 +49,8 @@ public class ClientExample extends Application {
 		try {
 
 			Platform.runLater(() -> {
-				displayText("[대화방에서 나갔습니다.]");
-				btnConn.setText("방 참여");
+				displayText("[연결 끊음]");
+				btnConn.setText("start");
 				btnSend.setDisable(true);
 			});
 			if (socket != null && !socket.isClosed()) {
@@ -126,18 +125,18 @@ public class ClientExample extends Application {
 		txtInput.setPrefSize(60, 30);
 		BorderPane.setMargin(txtInput, new Insets(0, 1, 1, 1));
 
-		btnConn = new Button("방 참여");
+		btnConn = new Button("start");
 		btnConn.setPrefSize(60, 30);
 
 		btnConn.setOnAction(e -> {
-			if (btnConn.getText().equals("방 참여")) {
+			if (btnConn.getText().equals("start")) {
 				startClient();
-			} else if (btnConn.getText().equals("나가기")) {
+			} else if (btnConn.getText().equals("stop")) {
 				stopClient();
 			}
 		});
 
-		btnSend = new Button("보내기");
+		btnSend = new Button("send");
 		btnSend.setPrefSize(60, 30);
 		btnSend.setDisable(true);
 		btnSend.setOnAction(e -> send(txtInput.getText()));

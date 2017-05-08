@@ -1,4 +1,4 @@
-package socket_server_test_chatting;
+package server_example_backup;
 
 import java.util.List;
 import java.io.IOException;
@@ -28,7 +28,6 @@ public class ServerExample extends Application {
 
 	void startServer() {
 		executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		System.out.println(Runtime.getRuntime().availableProcessors());
 		// 스레드풀 객체 생성 newFixedThreadPool - 최고의 성능을 위해 코어의 수만큼
 		// :Runtime.getRuntime().availableProcessors());
 
