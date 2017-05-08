@@ -21,11 +21,13 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
-public class ServerExample extends Application {
+public class ChattingServer extends Application {
+	//field
 	ExecutorService executorService;
 	ServerSocket serverSocket;
 	List<Client> connections = new Vector<Client>();
 
+	//method
 	void startServer() {
 		executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 		System.out.println(Runtime.getRuntime().availableProcessors());
@@ -102,6 +104,7 @@ public class ServerExample extends Application {
 		} catch (Exception e) {
 		}
 	}
+
 
 	class Client {
 		Socket socket;

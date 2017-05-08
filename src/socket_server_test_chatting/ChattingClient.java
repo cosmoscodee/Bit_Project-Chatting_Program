@@ -16,7 +16,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
-public class ClientExample extends Application {
+public class ChattingClient extends Application {
 	Socket socket;
 
 	void startClient() {
@@ -115,20 +115,20 @@ public class ClientExample extends Application {
 	public void start(Stage primaryStage) throws Exception {
 		BorderPane root = new BorderPane();
 		root.setPrefSize(500, 300);
-
+		
 		txtDisplay = new TextArea();
 		txtDisplay.setEditable(false);
 		BorderPane.setMargin(txtDisplay, new Insets(0, 0, 2, 0));
 		root.setCenter(txtDisplay);
-
+		
 		BorderPane bottom = new BorderPane();
 		txtInput = new TextField();
 		txtInput.setPrefSize(60, 30);
 		BorderPane.setMargin(txtInput, new Insets(0, 1, 1, 1));
-
+		
 		btnConn = new Button("방 참여");
 		btnConn.setPrefSize(60, 30);
-
+		
 		btnConn.setOnAction(e -> {
 			if (btnConn.getText().equals("방 참여")) {
 				startClient();
