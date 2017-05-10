@@ -20,17 +20,20 @@ public class ChattingClient extends Application {
 	Socket socket;
 
 	void startClient() {
-		Thread thread = new Thread() {
+		Thread thread = new Thread() {	//별도의 스레드
+			
 			@Override
 			public void run() {
 				try {
+					// 소켓 생성 및 연결
 					socket = new Socket();
 					socket.connect(new InetSocketAddress("localhost", 5001));
+					
 					Platform.runLater(() -> {
 						displayText("연결 완료: " + socket.getRemoteSocketAddress() + "]");
-						//displayText("[대화방에 참여하였습니다.]");
+						displayText("[대화방에 참여하였습니다.]");
 						btnConn.setText("나가기");
-						btnSend.setDisable(false);
+						btnSend.setDisable(false); // 보내기 버튼 활성화
 					});
 
 				} catch (IOException e) {
@@ -40,10 +43,10 @@ public class ChattingClient extends Application {
 					}
 					return;
 				}
-				receive();
+				receive(); // 서버에서 보낸 데이터 받기
 			}
 		};
-		thread.start();
+		thread.start(); // 스레드 시작
 	}
 
 	void stopClient() {
@@ -64,29 +67,31 @@ public class ChattingClient extends Application {
 	void receive() {
 		// 데이터 받기 코드
 		while (true) {
-			try {
+			
+			try {	
 				byte[] byteArr = new byte[100];
 				InputStream inputStream = socket.getInputStream();
-
-				int readByteCount = inputStream.read(byteArr);
-				if (readByteCount == -1) {
+				
+				int readByteCount = inputStream.read(byteArr);	//데이터 받기
+				if (readByteCount == -1) {	//-1을 리턴하면 서버가 정상적으로 종료
 					throw new IOException();
 				}
-
-				String data = new String(byteArr, 0, readByteCount, "utf-8");
-
-				Platform.runLater(() -> displayText("[받기 완료]" + data));
+				
+				//정상적으로 데이터를 읽을 경우
+				String data = new String(byteArr, 0, readByteCount, "utf-8");	//문자열 변환
+				
+				Platform.runLater(() -> displayText("[user]" + data));
 			} catch (Exception e) {
 				Platform.runLater(() -> displayText("[서버 통신 안됨]"));
 				stopClient();
 				break;
-			}
+				
+			}	
 		}
-
 	}
 
 	void send(String data) {
-		Thread thread = new Thread() {
+		Thread thread = new Thread() {	//별도의 스레드
 			@Override
 			public void run() {
 				try {
@@ -94,7 +99,7 @@ public class ChattingClient extends Application {
 					OutputStream outputStream = socket.getOutputStream();
 					outputStream.write(byteArr);
 					outputStream.flush();
-					Platform.runLater(() -> displayText("[보내기 완료]"));
+					// Platform.runLater(() -> displayText("[보내기 완료]"));
 				} catch (Exception e) {
 					Platform.runLater(() -> displayText("[서버 통신 안됨]"));
 					stopClient();
@@ -104,9 +109,6 @@ public class ChattingClient extends Application {
 		thread.start();
 	}
 
-	
-	
-	
 	// UI 생성코드
 
 	TextArea txtDisplay;
@@ -118,20 +120,20 @@ public class ChattingClient extends Application {
 	public void start(Stage primaryStage) throws Exception {
 		BorderPane root = new BorderPane();
 		root.setPrefSize(500, 300);
-		
+
 		txtDisplay = new TextArea();
 		txtDisplay.setEditable(false);
 		BorderPane.setMargin(txtDisplay, new Insets(0, 0, 2, 0));
 		root.setCenter(txtDisplay);
-		
+
 		BorderPane bottom = new BorderPane();
 		txtInput = new TextField();
 		txtInput.setPrefSize(60, 30);
 		BorderPane.setMargin(txtInput, new Insets(0, 1, 1, 1));
-		
+
 		btnConn = new Button("방 참여");
 		btnConn.setPrefSize(60, 30);
-		
+
 		btnConn.setOnAction(e -> {
 			if (btnConn.getText().equals("방 참여")) {
 				startClient();

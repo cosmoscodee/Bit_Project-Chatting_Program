@@ -26,13 +26,17 @@ public class ChattingServer extends Application {
 	ExecutorService executorService;
 	ServerSocket serverSocket;
 	List<Client> connections = new Vector<Client>();
+	
+	
 
 	// method
 	void startServer() {
-		executorService = Executors.newFixedThreadPool(10);
-		//executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		//System.out.println(Runtime.getRuntime().availableProcessors());
-		
+		executorService = Executors.newFixedThreadPool(10);// 스레드 10개 할당
+
+		// executorService =
+		// Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+		// System.out.println(Runtime.getRuntime().availableProcessors());
+
 		// 스레드풀 객체 생성 newFixedThreadPool - 최고의 성능을 위해 코어의 수만큼
 		// :Runtime.getRuntime().availableProcessors()); //현재 활당받을 수 있는 cpu 스레드
 		// 갯 수
@@ -56,6 +60,7 @@ public class ChattingServer extends Application {
 				Platform.runLater(() -> { // Platform.runLater()은 변경 요청 코드
 											// 변경요청 (람다식)
 					displayText("[서버 시작]");
+
 					btnStartStop.setText("stop"); // start -> stop 으로 변경
 				});
 
@@ -64,17 +69,19 @@ public class ChattingServer extends Application {
 						Socket socket = serverSocket.accept(); // 클라이언트 연결 요청 까지
 																// 대기
 						String message = "[연결 수락: " + socket.getRemoteSocketAddress() + ": "
-								+ Thread.currentThread().getName() + "]"; // 현재
-																			// 스레드
+								+ Thread.currentThread().getName() + "]"; // 소켓주소와
+																			// 현재스레드
 																			// 출력
+						
+						
 						Platform.runLater(() -> displayText(message));
 
 						Client client = new Client(socket);
-						connections.add(client); // 클라이언트 1개당 connections에 추가
-						Platform.runLater(() -> displayText("연결 개수: " + connections.size() + "]")); // 현재
+						connections.add(client); // client를 connections에 추가
+						Platform.runLater(() -> displayText("[참여 인원 수: " + connections.size() + "]")); // 현재
 																									// 클라이언트
 																									// 개수
-
+						
 					} catch (IOException e) { // accept() 예외 발생시
 						if (!serverSocket.isClosed()) {
 							stopServer();
@@ -114,11 +121,14 @@ public class ChattingServer extends Application {
 		}
 	}
 
-	class Client {
+	class Client {	//데이터 통신코드
 		Socket socket;
+		String nickname;
 
 		Client(Socket socket) { // 생성자
 			this.socket = socket;
+			this.nickname = nickname;
+			
 			receive();
 		}
 
@@ -145,9 +155,10 @@ public class ChattingServer extends Application {
 
 							for (Client client : connections) {
 								client.send(data);
+								
 							}
-
 						}
+
 					} catch (Exception e) {
 						try {
 							connections.remove(Client.this);
