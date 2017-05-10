@@ -104,6 +104,9 @@ public class ChattingClient extends Application {
 		thread.start();
 	}
 
+	
+	
+	
 	// UI 생성코드
 
 	TextArea txtDisplay;

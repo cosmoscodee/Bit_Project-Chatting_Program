@@ -22,35 +22,41 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
 public class ChattingServer extends Application {
-	//field
+	// field
 	ExecutorService executorService;
 	ServerSocket serverSocket;
 	List<Client> connections = new Vector<Client>();
 
-	//method
+	// method
 	void startServer() {
-		executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		System.out.println(Runtime.getRuntime().availableProcessors());
+		executorService = Executors.newFixedThreadPool(10);
+		//executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+		//System.out.println(Runtime.getRuntime().availableProcessors());
+		
 		// 스레드풀 객체 생성 newFixedThreadPool - 최고의 성능을 위해 코어의 수만큼
-		// :Runtime.getRuntime().availableProcessors());
+		// :Runtime.getRuntime().availableProcessors()); //현재 활당받을 수 있는 cpu 스레드
+		// 갯 수
 
 		try {
+			// 서버소켓 생성 및 바인딩 코드
 			serverSocket = new ServerSocket();
 			serverSocket.bind(new InetSocketAddress("localhost", 5001));
+
+			// 예외가 발생하면 서버소켓을 안전하게 닫아준다
 		} catch (Exception e) {
 			if (!serverSocket.isClosed()) {
 				stopServer();
 			}
-			return;
+			return; // startServer() 종료
 		}
 
-		// 연결 수락 작업 객체
-		Runnable runnable = new Runnable() {
+		Runnable runnable = new Runnable() { // 연결 수락 작업 객체
 			@Override
-			public void run() {
-				Platform.runLater(() -> { // UI 변경요청
+			public void run() { // 연락 수락을 위해 run()을 재정의 해준다
+				Platform.runLater(() -> { // Platform.runLater()은 변경 요청 코드
+											// 변경요청 (람다식)
 					displayText("[서버 시작]");
-					btnStartStop.setText("stop");
+					btnStartStop.setText("stop"); // start -> stop 으로 변경
 				});
 
 				while (true) {
@@ -58,19 +64,22 @@ public class ChattingServer extends Application {
 						Socket socket = serverSocket.accept(); // 클라이언트 연결 요청 까지
 																// 대기
 						String message = "[연결 수락: " + socket.getRemoteSocketAddress() + ": "
-								+ Thread.currentThread().getName() + "]";
+								+ Thread.currentThread().getName() + "]"; // 현재
+																			// 스레드
+																			// 출력
 						Platform.runLater(() -> displayText(message));
-					
 
 						Client client = new Client(socket);
-						connections.add(client);
-						Platform.runLater(() -> displayText("연결 개수: " + connections.size() + "]"));
-						
-					} catch (IOException e) {
+						connections.add(client); // 클라이언트 1개당 connections에 추가
+						Platform.runLater(() -> displayText("연결 개수: " + connections.size() + "]")); // 현재
+																									// 클라이언트
+																									// 개수
+
+					} catch (IOException e) { // accept() 예외 발생시
 						if (!serverSocket.isClosed()) {
 							stopServer();
 						}
-						break;
+						break; // while()문 종료
 					}
 				}
 			}
@@ -82,7 +91,7 @@ public class ChattingServer extends Application {
 	void stopServer() {
 
 		try {
-			Iterator<Client> iterator = connections.iterator();
+			Iterator<Client> iterator = connections.iterator(); // 반복자 호출
 			while (iterator.hasNext()) {
 				Client client = iterator.next();
 				client.socket.close();
@@ -97,14 +106,13 @@ public class ChattingServer extends Application {
 				executorService.shutdown();
 			}
 
-			Platform.runLater(() -> {
+			Platform.runLater(() -> { // 자바FX UI 접근
 				displayText("[서버 멈춤]");
-				btnStartStop.setText("start");
+				btnStartStop.setText("start"); // stop -> start 버튼 변경
 			});
 		} catch (Exception e) {
 		}
 	}
-
 
 	class Client {
 		Socket socket;
@@ -119,12 +127,14 @@ public class ChattingServer extends Application {
 				@Override
 				public void run() {
 					try {
-						while (true) {
-							byte[] byteArr = new byte[100];
+						while (true) { // 계속 클라이언트의 데이터를 받아야하므로 무한루프를 생성
+							byte[] byteArr = new byte[100]; // 바이트 배열 선언
 							InputStream inputStream = socket.getInputStream();
+							// 예외 처리
+
 							int readByteCount = inputStream.read(byteArr);
-							if (readByteCount == -1) {
-								throw new IOException();
+							if (readByteCount == -1) { // 클라이언트가 정상 종료 했다면
+								throw new IOException(); // 강제적으로 IOException 발생
 							}
 
 							String message = "[요청 처리:" + socket.getRemoteSocketAddress() + ": "
@@ -169,9 +179,10 @@ public class ChattingServer extends Application {
 								+ Thread.currentThread().getName() + "]";
 						Platform.runLater(() -> displayText(message));
 						connections.remove(Client.this);
-						try{
-						socket.close();
-						} catch (IOException e2) {}
+						try {
+							socket.close();
+						} catch (IOException e2) {
+						}
 					}
 				}
 			};
@@ -179,37 +190,34 @@ public class ChattingServer extends Application {
 		}
 	}
 
+	// UI 생성코드
 
-
-	//UI code
-	
 	TextArea txtDisplay;
 	Button btnStartStop;
-	
-	
+
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		BorderPane root = new BorderPane();
 		root.setPrefSize(500, 300);
-		
+
 		txtDisplay = new TextArea();
 		txtDisplay.setEditable(false);
-		BorderPane.setMargin(txtDisplay, new Insets(0,0,2,0));
+		BorderPane.setMargin(txtDisplay, new Insets(0, 0, 2, 0));
 		root.setCenter(txtDisplay);
-		
+
 		btnStartStop = new Button("start");
 		btnStartStop.setPrefHeight(30);
 		btnStartStop.setMaxWidth(Double.MAX_VALUE);
-		btnStartStop.setOnAction(e-> {
-			if(btnStartStop.getText().equals("start")) {
+		btnStartStop.setOnAction(e -> {
+			if (btnStartStop.getText().equals("start")) {
 				startServer();
-			} else if(btnStartStop.getText().equals("stop")) {
+			} else if (btnStartStop.getText().equals("stop")) {
 				stopServer();
 			}
 		});
-		
+
 		root.setBottom(btnStartStop);
-		
+
 		Scene scene = new Scene(root);
 		scene.getStylesheets().add(getClass().getResource("app.css").toString());
 		primaryStage.setScene(scene);
@@ -217,9 +225,8 @@ public class ChattingServer extends Application {
 		primaryStage.setOnCloseRequest(event -> stopServer());
 		primaryStage.show();
 	}
-	
 
-	void displayText(String text) {
+	void displayText(String text) { // 디스플레이에 문자열 출력
 		txtDisplay.appendText(text + "\n");
 	}
 
