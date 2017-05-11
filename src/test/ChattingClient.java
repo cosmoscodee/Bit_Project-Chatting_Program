@@ -1,4 +1,4 @@
-package socket_server_test_chatting;
+package test;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,47 +20,47 @@ public class ChattingClient extends Application {
 	Socket socket;
 
 	void startClient() {
-		Thread thread = new Thread() { // 별도의 스레드
+		Thread thread = new Thread() { // ������ ������
 
 			@Override
 			public void run() {
 				try {
-					// 소켓 생성 및 연결
+					// ���� ���� �� ����
 					socket = new Socket();
 					socket.connect(new InetSocketAddress("localhost", 5001));
-
 					Platform.runLater(() -> {
-						try{
+						try {
 							socket.getOutputStream().write(txtInput.getText().getBytes());
 							socket.getOutputStream().flush();
-						} catch(IOException e){
-							
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
-						displayText("연결 완료: " + socket.getRemoteSocketAddress() + "]");
-						displayText("[대화방에 참여하였습니다.]"+'\n'+"[닉네임을 설정해주세요.]");
-						btnConn.setText("나가기");
-						btnSend.setDisable(false); // 보내기 버튼 활성화
+						displayText("���� �Ϸ�: " + socket.getRemoteSocketAddress() + "]");
+						displayText("[��ȭ�濡 �����Ͽ����ϴ�.]");
+						btnConn.setText("������");
+						btnSend.setDisable(false); // ������ ��ư Ȱ��ȭ
 					});
 
 				} catch (IOException e) {
-					Platform.runLater(() -> displayText("[서버 통신 안됨"));
+					Platform.runLater(() -> displayText("[���� ��� �ȵ�"));
 					if (!socket.isClosed()) {
 						stopClient();
 					}
 					return;
 				}
-				receive(); // 서버에서 보낸 데이터 받기
+				receive(); // �������� ���� ������ �ޱ�
 			}
 		};
-		thread.start(); // 스레드 시작
+		thread.start(); // ������ ����
 	}
 
 	void stopClient() {
 		try {
 
 			Platform.runLater(() -> {
-				displayText("[대화방에서 나갔습니다.]");
-				btnConn.setText("방 참여");
+				displayText("[��ȭ�濡�� �������ϴ�.]");
+				btnConn.setText("�� ����");
 				btnSend.setDisable(true);
 			});
 			if (socket != null && !socket.isClosed()) {
@@ -71,25 +71,26 @@ public class ChattingClient extends Application {
 	}
 
 	void receive() {
-		// 데이터 받기 코드
+		// ������ �ޱ� �ڵ�
 		while (true) {
 
 			try {
 				byte[] byteArr = new byte[100];
 				InputStream inputStream = socket.getInputStream();
 
-				int readByteCount = inputStream.read(byteArr); // 데이터 받기
-				if (readByteCount == -1) { // -1을 리턴하면 서버가 정상적으로 종료
+				int readByteCount = inputStream.read(byteArr); // ������ �ޱ�
+				if (readByteCount == -1) { // -1�� �����ϸ� ������ ����������
+											// ����
 					throw new IOException();
 				}
 
-				// 정상적으로 데이터를 읽을 경우
-				String data = new String(byteArr, 0, readByteCount, "utf-8"); // 문자열
-																				// 변환
+				// ���������� �����͸� ���� ���
+				String data = new String(byteArr, 0, readByteCount, "utf-8"); // ���ڿ�
+																				// ��ȯ
 
 				Platform.runLater(() -> displayText(data));
 			} catch (Exception e) {
-				Platform.runLater(() -> displayText("[서버 통신 안됨]"));
+				Platform.runLater(() -> displayText("[���� ��� �ȵ�]"));
 				stopClient();
 				break;
 
@@ -98,7 +99,7 @@ public class ChattingClient extends Application {
 	}
 
 	void send(String data) {
-		Thread thread = new Thread() { // 별도의 스레드
+		Thread thread = new Thread() { // ������ ������
 			@Override
 			public void run() {
 				try {
@@ -106,9 +107,9 @@ public class ChattingClient extends Application {
 					OutputStream outputStream = socket.getOutputStream();
 					outputStream.write(byteArr);
 					outputStream.flush();
-					// Platform.runLater(() -> displayText("[보내기 완료]"));
+					// Platform.runLater(() -> displayText("[������ �Ϸ�]"));
 				} catch (Exception e) {
-					Platform.runLater(() -> displayText("[서버 통신 안됨]"));
+					Platform.runLater(() -> displayText("[���� ��� �ȵ�]"));
 					stopClient();
 				}
 			}
@@ -116,7 +117,7 @@ public class ChattingClient extends Application {
 		thread.start();
 	}
 
-	// UI 생성코드
+	// UI �����ڵ�
 
 	TextArea txtDisplay;
 	TextField txtInput;
@@ -138,21 +139,32 @@ public class ChattingClient extends Application {
 		txtInput.setPrefSize(60, 30);
 		BorderPane.setMargin(txtInput, new Insets(0, 1, 1, 1));
 
-		btnConn = new Button("방 참여");
+		btnConn = new Button("�� ����");
 		btnConn.setPrefSize(60, 30);
 
 		btnConn.setOnAction(e -> {
-			if (btnConn.getText().equals("방 참여")) {
-				startClient();
-			} else if (btnConn.getText().equals("나가기")) {
+			if (btnConn.getText().equals("�� ����")) {
+				Platform.runLater(() -> {
+					if (txtInput.getText().equals("")) {
+						displayText("[ ä�ÿ��� ����� �г����� ���� �Է����ּ���. ]");
+					} else {
+						startClient();
+					}
+				});
+			} else if (btnConn.getText().equals("������")) {
 				stopClient();
 			}
 		});
 
-		btnSend = new Button("보내기");
+		btnSend = new Button("������");
 		btnSend.setPrefSize(60, 30);
 		btnSend.setDisable(true);
-		btnSend.setOnAction(e -> send(txtInput.getText()));
+		btnSend.setOnAction(e -> {
+			Platform.runLater(() -> {
+				send(txtInput.getText());
+				txtInput.setText("");
+			});
+		});
 
 		bottom.setCenter(txtInput);
 		bottom.setLeft(btnConn);
@@ -160,7 +172,7 @@ public class ChattingClient extends Application {
 		root.setBottom(bottom);
 
 		Scene scene = new Scene(root);
-		scene.getStylesheets().add(getClass().getResource("app.css").toString());
+		// scene.getStylesheets().add(getClass().getResource("app.css").toString());
 		primaryStage.setScene(scene);
 		primaryStage.setTitle("Client");
 		primaryStage.setOnCloseRequest(event -> stopClient());

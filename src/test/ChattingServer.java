@@ -1,4 +1,4 @@
-package socket_server_test_chatting;
+package test;
 
 import java.util.List;
 import java.io.IOException;
@@ -29,53 +29,52 @@ public class ChattingServer extends Application {
 	
 	// method
 	void startServer() {
-		executorService = Executors.newFixedThreadPool(10);// 스레드 10개 할당
+		executorService = Executors.newFixedThreadPool(10);// ������ 10�� �Ҵ�
 
 		// executorService =
 		// Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		// 스레드풀 객체 생성 newFixedThreadPool - 최고의 성능을 위해 코어의 수만큼
+		// ������Ǯ ��ü ���� newFixedThreadPool - �ְ��� ������ ���� �ھ��� ����ŭ
 
 		try {
-			// 서버소켓 생성 및 바인딩 코드
+			// �������� ���� �� ���ε� �ڵ�
 			serverSocket = new ServerSocket();
 			serverSocket.bind(new InetSocketAddress("localhost", 5001));
 
-			// 예외가 발생하면 서버소켓을 안전하게 닫아준다
+			// ���ܰ� �߻��ϸ� ���������� �����ϰ� �ݾ��ش�
 		} catch (Exception e) {
 			if (!serverSocket.isClosed()) {
 				stopServer();
 			}
-			return; // startServer() 종료
+			return; // startServer() ����
 		}
 		
-		//연결수락코드 runnable-작업객체
-		Runnable runnable = new Runnable() { // 연결 수락 작업 객체
+		//��������ڵ� runnable-�۾���ü
+		Runnable runnable = new Runnable() { // ���� ���� �۾� ��ü
 			@Override
-			public void run() { // 연락 수락을 위해 run()을 재정의 해준다
+			public void run() { // ���� ������ ���� run()�� ������ ���ش�
 				//
 //				Socket socket = null;
 				byte getNickname[] = null;
 				String nickname = null;
-				//String notifyConnector = null;
 				
 				
 				//
-				Platform.runLater(() -> { // Platform.runLater()은 변경 요청 코드
-											// 변경요청 (람다식)
-					displayText("[서버 시작]");		// javafx 필드부분에 text 출력
+				Platform.runLater(() -> { // Platform.runLater()�� ���� ��û �ڵ�
+											// �����û (���ٽ�)
+					displayText("[���� ����]");		// javafx �ʵ�κп� text ���
 
-					btnStartStop.setText("stop"); // start -> stop 으로 변경
+					btnStartStop.setText("stop"); // start -> stop ���� ����
 				});
 
-				while (true) {	//수락 작업 accept
+				while (true) {	//���� �۾� accept
 					try {
 						
-						Socket socket = serverSocket.accept(); // 클라이언트 연결 요청 까지
-																// 대기
-						String message = "[연결 수락: " + socket.getRemoteSocketAddress() + ": "
-								+ Thread.currentThread().getName() + "]"; // 소켓주소와
-																			// 현재스레드
-																			// 출력
+						Socket socket = serverSocket.accept(); // Ŭ���̾�Ʈ ���� ��û ����
+																// ���
+						String message = "[���� ����: " + socket.getRemoteSocketAddress() + ": "
+								+ Thread.currentThread().getName() + "]"; // �����ּҿ�
+																			// ���罺����
+																			// ���
 						
 						Platform.runLater(() -> displayText(message));
 						
@@ -83,36 +82,37 @@ public class ChattingServer extends Application {
 						
 						getNickname = new byte[20];
 						is.read(getNickname);
-						nickname = new String(getNickname,"UTF-8").trim();
+						nickname = new String(getNickname).trim();
 						
-						
+						System.out.println(nickname + "�� ����");
+					
 						//Client client = new Client(socket, nickname);
-						connections.add(new Client(socket, nickname)); // client를 connections에 추가
+						connections.add(new Client(socket, nickname)); // client�� connections�� �߰�
 						
-						//notifyConnector = nickname + "[참여 인원 수 : " + connections.size() +"]";
+						//notifyConnector = nickname + "[���� �ο� �� : " + connections.size() +"]";
 						//Platform.runLater(() -> displayText(notifyConnector));
 						
-						Platform.runLater(() -> displayText("[닉네임이 설정되었습니다.]"+'\n'+"[참여 인원 수: " + connections.size() + "]")); // 현재
-																										// 클라이언트
-																										// 개수
+						Platform.runLater(() -> displayText("[���� �ο� ��: " + connections.size() + "]")); // ����
+																										// Ŭ���̾�Ʈ
+																										// ����
 
-					} catch (IOException e) { // accept() 예외 발생시
+					} catch (IOException e) { // accept() ���� �߻���
 						if (!serverSocket.isClosed()) {
 							stopServer();
 						}
-						break; // while()문 종료
+						break; // while()�� ����
 					}
 				}
 			}
 		};
-		executorService.submit(runnable); // 스레드풀에서 처리
+		executorService.submit(runnable); // ������Ǯ���� ó��
 
 	}// startServer() end
 
 	void stopServer() {
 
 		try {
-			Iterator<Client> iterator = connections.iterator(); // 반복자 호출
+			Iterator<Client> iterator = connections.iterator(); // �ݺ��� ȣ��
 			while (iterator.hasNext()) {
 				Client client = iterator.next();
 				client.socket.close();
@@ -127,19 +127,19 @@ public class ChattingServer extends Application {
 				executorService.shutdown();
 			}
 
-			Platform.runLater(() -> { // 자바FX UI 접근
-				displayText("[서버 멈춤]");
-				btnStartStop.setText("start"); // stop -> start 버튼 변경
+			Platform.runLater(() -> { // �ڹ�FX UI ����
+				displayText("[���� ����]");
+				btnStartStop.setText("start"); // stop -> start ��ư ����
 			});
 		} catch (Exception e) {
 		}
 	}
 
-	class Client { // 데이터 통신코드
+	class Client { // ������ ����ڵ�
 		Socket socket;
 		String nickname = null;
 
-		Client(Socket socket, String nickname) { // 생성자
+		Client(Socket socket, String nickname) { // ������
 			this.socket = socket;
 			this.nickname = nickname;
 
@@ -151,24 +151,23 @@ public class ChattingServer extends Application {
 				@Override
 				public void run() {
 					try {
-						while (true) { // 계속 클라이언트의 데이터를 받아야하므로 무한루프를 생성
-							byte[] byteArr = new byte[100]; // 바이트 배열 선언
+						while (true) { // ��� Ŭ���̾�Ʈ�� �����͸� �޾ƾ��ϹǷ� ���ѷ����� ����
+							byte[] byteArr = new byte[100]; // ����Ʈ �迭 ����
 							InputStream inputStream = socket.getInputStream();
-							// 클라이언트에 온 데이터 받기
+							// Ŭ���̾�Ʈ�� �� ������ �ޱ�
 
 							int readByteCount = inputStream.read(byteArr);
-							if (readByteCount == -1) { // 클라이언트가 정상 종료 했다면
-								throw new IOException(); // 강제적으로 IOException 발생
+							if (readByteCount == -1) { // Ŭ���̾�Ʈ�� ���� ���� �ߴٸ�
+								throw new IOException(); // ���������� IOException �߻�
 							}
 
-							String message = "[요청 처리:" + socket.getRemoteSocketAddress() + ": "
+							String message = "[��û ó��:" + socket.getRemoteSocketAddress() + ": "
 									+ Thread.currentThread().getName() + "]";
 							Platform.runLater(() -> displayText(message));
 
 							String data = new String(byteArr, 0, readByteCount, "utf-8");
-							//문자열 변환, byteArr의 0 인덱스부터 읽은 바이트 수 만큼 문자열로 변환 
-							
-							data = Client.this.nickname+ " : " + data;
+							//���ڿ� ��ȯ, byteArr�� 0 �ε������� ���� ����Ʈ �� ��ŭ ���ڿ��� ��ȯ 
+							data = Client.this.nickname + " : " + data;
 							for (Client client : connections) {
 								client.send(data);
 
@@ -178,7 +177,7 @@ public class ChattingServer extends Application {
 					} catch (Exception e) {
 						try {
 							connections.remove(Client.this);
-							String message = "[클라이언트 통신 안됨: " + socket.getRemoteSocketAddress() + ": "
+							String message = "[" + Client.this.nickname + "�Բ��� �����̽��ϴ�. : " + socket.getRemoteSocketAddress() + " : "
 									+ Thread.currentThread().getName() + "]";
 							Platform.runLater(() -> displayText(message));
 							socket.close();
@@ -202,7 +201,7 @@ public class ChattingServer extends Application {
 						outputStream.write(byteArr);
 						outputStream.flush();
 					} catch (Exception e) {
-						String message = "[클라이언트 통신 안됨: " + socket.getRemoteSocketAddress() + ": "
+						String message = "[Ŭ���̾�Ʈ ��� �ȵ�: " + socket.getRemoteSocketAddress() + ": "
 								+ Thread.currentThread().getName() + "]";
 						Platform.runLater(() -> displayText(message));
 						connections.remove(Client.this);
@@ -217,7 +216,7 @@ public class ChattingServer extends Application {
 		}
 	}
 
-	// UI 생성코드
+	// UI �����ڵ�
 
 	TextArea txtDisplay;
 	Button btnStartStop;
@@ -246,14 +245,14 @@ public class ChattingServer extends Application {
 		root.setBottom(btnStartStop);
 
 		Scene scene = new Scene(root);
-		scene.getStylesheets().add(getClass().getResource("app.css").toString());
+		//scene.getStylesheets().add(getClass().getResource("app.css").toString());
 		primaryStage.setScene(scene);
 		primaryStage.setTitle("Server");
 		primaryStage.setOnCloseRequest(event -> stopServer());
 		primaryStage.show();
 	}
 
-	void displayText(String text) { // 디스플레이에 문자열 출력
+	void displayText(String text) { // ���÷��̿� ���ڿ� ���
 		txtDisplay.appendText(text + "\n");
 	}
 
