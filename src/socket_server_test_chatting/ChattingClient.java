@@ -20,15 +20,15 @@ public class ChattingClient extends Application {
 	Socket socket;
 
 	void startClient() {
-		Thread thread = new Thread() {	//별도의 스레드
-			
+		Thread thread = new Thread() { // 별도의 스레드
+
 			@Override
 			public void run() {
 				try {
 					// 소켓 생성 및 연결
 					socket = new Socket();
 					socket.connect(new InetSocketAddress("localhost", 5001));
-					
+
 					Platform.runLater(() -> {
 						displayText("연결 완료: " + socket.getRemoteSocketAddress() + "]");
 						displayText("[대화방에 참여하였습니다.]");
@@ -67,31 +67,32 @@ public class ChattingClient extends Application {
 	void receive() {
 		// 데이터 받기 코드
 		while (true) {
-			
-			try {	
+
+			try {
 				byte[] byteArr = new byte[100];
 				InputStream inputStream = socket.getInputStream();
-				
-				int readByteCount = inputStream.read(byteArr);	//데이터 받기
-				if (readByteCount == -1) {	//-1을 리턴하면 서버가 정상적으로 종료
+
+				int readByteCount = inputStream.read(byteArr); // 데이터 받기
+				if (readByteCount == -1) { // -1을 리턴하면 서버가 정상적으로 종료
 					throw new IOException();
 				}
-				
-				//정상적으로 데이터를 읽을 경우
-				String data = new String(byteArr, 0, readByteCount, "utf-8");	//문자열 변환
-				
-				Platform.runLater(() -> displayText("[user]" + data));
+
+				// 정상적으로 데이터를 읽을 경우
+				String data = new String(byteArr, 0, readByteCount, "utf-8"); // 문자열
+																				// 변환
+
+				Platform.runLater(() -> displayText(data));
 			} catch (Exception e) {
 				Platform.runLater(() -> displayText("[서버 통신 안됨]"));
 				stopClient();
 				break;
-				
-			}	
+
+			}
 		}
 	}
 
 	void send(String data) {
-		Thread thread = new Thread() {	//별도의 스레드
+		Thread thread = new Thread() { // 별도의 스레드
 			@Override
 			public void run() {
 				try {

@@ -27,19 +27,13 @@ public class ChattingServer extends Application {
 	ServerSocket serverSocket;
 	List<Client> connections = new Vector<Client>();
 	
-	
-
 	// method
 	void startServer() {
 		executorService = Executors.newFixedThreadPool(10);// 스레드 10개 할당
 
 		// executorService =
 		// Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		// System.out.println(Runtime.getRuntime().availableProcessors());
-
 		// 스레드풀 객체 생성 newFixedThreadPool - 최고의 성능을 위해 코어의 수만큼
-		// :Runtime.getRuntime().availableProcessors()); //현재 활당받을 수 있는 cpu 스레드
-		// 갯 수
 
 		try {
 			// 서버소켓 생성 및 바인딩 코드
@@ -53,19 +47,29 @@ public class ChattingServer extends Application {
 			}
 			return; // startServer() 종료
 		}
-
+		
+		//연결수락코드 runnable-작업객체
 		Runnable runnable = new Runnable() { // 연결 수락 작업 객체
 			@Override
 			public void run() { // 연락 수락을 위해 run()을 재정의 해준다
+				//
+//				Socket socket = null;
+				byte getNickname[] = null;
+				String nickname = null;
+				String notifyConnector = null;
+				
+				
+				//
 				Platform.runLater(() -> { // Platform.runLater()은 변경 요청 코드
 											// 변경요청 (람다식)
-					displayText("[서버 시작]");
+					displayText("[서버 시작]");		// javafx 필드부분에 text 출력
 
 					btnStartStop.setText("stop"); // start -> stop 으로 변경
 				});
 
-				while (true) {
+				while (true) {	//수락 작업 accept
 					try {
+						
 						Socket socket = serverSocket.accept(); // 클라이언트 연결 요청 까지
 																// 대기
 						String message = "[연결 수락: " + socket.getRemoteSocketAddress() + ": "
@@ -73,15 +77,26 @@ public class ChattingServer extends Application {
 																			// 현재스레드
 																			// 출력
 						
-						
 						Platform.runLater(() -> displayText(message));
-
-						Client client = new Client(socket);
-						connections.add(client); // client를 connections에 추가
-						Platform.runLater(() -> displayText("[참여 인원 수: " + connections.size() + "]")); // 현재
-																									// 클라이언트
-																									// 개수
 						
+						InputStream is = socket.getInputStream();
+						
+						getNickname = new byte[20];
+						is.read(getNickname);
+						nickname = new String(getNickname,"UTF-8").trim();
+						
+						
+					
+						//Client client = new Client(socket, nickname);
+						connections.add(new Client(socket, nickname)); // client를 connections에 추가
+						
+						//notifyConnector = nickname + "[참여 인원 수 : " + connections.size() +"]";
+						//Platform.runLater(() -> displayText(notifyConnector));
+						
+						Platform.runLater(() -> displayText("[참여 인원 수: " + connections.size() + "]")); // 현재
+																										// 클라이언트
+																										// 개수
+
 					} catch (IOException e) { // accept() 예외 발생시
 						if (!serverSocket.isClosed()) {
 							stopServer();
@@ -121,14 +136,14 @@ public class ChattingServer extends Application {
 		}
 	}
 
-	class Client {	//데이터 통신코드
+	class Client { // 데이터 통신코드
 		Socket socket;
-		String nickname;
+		String nickname = null;
 
-		Client(Socket socket) { // 생성자
+		Client(Socket socket, String nickname) { // 생성자
 			this.socket = socket;
 			this.nickname = nickname;
-			
+
 			receive();
 		}
 
@@ -140,7 +155,7 @@ public class ChattingServer extends Application {
 						while (true) { // 계속 클라이언트의 데이터를 받아야하므로 무한루프를 생성
 							byte[] byteArr = new byte[100]; // 바이트 배열 선언
 							InputStream inputStream = socket.getInputStream();
-							// 예외 처리
+							// 클라이언트에 온 데이터 받기
 
 							int readByteCount = inputStream.read(byteArr);
 							if (readByteCount == -1) { // 클라이언트가 정상 종료 했다면
@@ -152,10 +167,11 @@ public class ChattingServer extends Application {
 							Platform.runLater(() -> displayText(message));
 
 							String data = new String(byteArr, 0, readByteCount, "utf-8");
-
+							//문자열 변환, byteArr의 0 인덱스부터 읽은 바이트 수 만큼 문자열로 변환 
+							
 							for (Client client : connections) {
 								client.send(data);
-								
+
 							}
 						}
 
