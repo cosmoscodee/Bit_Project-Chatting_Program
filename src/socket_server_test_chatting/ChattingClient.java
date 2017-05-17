@@ -106,7 +106,6 @@ public class ChattingClient extends Application {
 					OutputStream outputStream = socket.getOutputStream();
 					outputStream.write(byteArr);
 					outputStream.flush();
-					// Platform.runLater(() -> displayText("[보내기 완료]"));
 				} catch (Exception e) {
 					Platform.runLater(() -> displayText("[서버 통신 안됨]"));
 					stopClient();
@@ -117,7 +116,6 @@ public class ChattingClient extends Application {
 	}
 
 	// UI 생성코드
-
 	TextArea txtDisplay;
 	TextField txtInput;
 	Button btnConn;

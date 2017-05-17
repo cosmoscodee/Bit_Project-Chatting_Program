@@ -1,3 +1,8 @@
+/* 비트 프로젝트 - 채팅 프로그램 by 김현우
+ * 스레드풀, 소켓서버, 소켓, JavaFX를 활용한 채팅 프로그램
+ * +방을 입장하면 닉네임을 설정하는 기능 추가
+ */
+
 package socket_server_test_chatting;
 
 import java.util.List;
@@ -26,14 +31,14 @@ public class ChattingServer extends Application {
 	ExecutorService executorService;
 	ServerSocket serverSocket;
 	List<Client> connections = new Vector<Client>();
-	
+
 	// method
 	void startServer() {
 		executorService = Executors.newFixedThreadPool(10);// 스레드 10개 할당
 
 		// executorService =
 		// Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		// 스레드풀 객체 생성 newFixedThreadPool - 최고의 성능을 위해 코어의 수만큼
+		// 최고의 성능을 위해 코어의 수만큼
 
 		try {
 			// 서버소켓 생성 및 바인딩 코드
@@ -47,54 +52,46 @@ public class ChattingServer extends Application {
 			}
 			return; // startServer() 종료
 		}
-		
-		//연결수락코드 runnable-작업객체
+
+		// 연결수락코드 runnable-작업객체
 		Runnable runnable = new Runnable() { // 연결 수락 작업 객체
 			@Override
 			public void run() { // 연락 수락을 위해 run()을 재정의 해준다
-				//
-//				Socket socket = null;
 				byte getNickname[] = null;
 				String nickname = null;
-				//String notifyConnector = null;
-				
-				
-				//
+
 				Platform.runLater(() -> { // Platform.runLater()은 변경 요청 코드
 											// 변경요청 (람다식)
-					displayText("[서버 시작]");		// javafx 필드부분에 text 출력
+					displayText("[서버 시작]"); // javafx 필드부분에 text 출력
 
 					btnStartStop.setText("stop"); // start -> stop 으로 변경
 				});
 
-				while (true) {	//수락 작업 accept
+				while (true) { // 수락 작업 accept
 					try {
-						
+
 						Socket socket = serverSocket.accept(); // 클라이언트 연결 요청 까지
 																// 대기
 						String message = "[연결 수락: " + socket.getRemoteSocketAddress() + ": "
 								+ Thread.currentThread().getName() + "]"; // 소켓주소와
 																			// 현재스레드
 																			// 출력
-						
+
 						Platform.runLater(() -> displayText(message));
-						
+
 						InputStream is = socket.getInputStream();
-						
-						getNickname = new byte[20];
+
+						getNickname = new byte[20]; // 닉네임 설정
 						is.read(getNickname);
-						nickname = new String(getNickname,"UTF-8").trim();
-						
-						
-						//Client client = new Client(socket, nickname);
-						connections.add(new Client(socket, nickname)); // client를 connections에 추가
-						
-						//notifyConnector = nickname + "[참여 인원 수 : " + connections.size() +"]";
-						//Platform.runLater(() -> displayText(notifyConnector));
-						
-						Platform.runLater(() -> displayText("[닉네임이 설정되었습니다.]"+'\n'+"[참여 인원 수: " + connections.size() + "]")); // 현재
-																										// 클라이언트
-																										// 개수
+						nickname = new String(getNickname, "UTF-8").trim();
+
+						connections.add(new Client(socket, nickname)); // client를
+																		// connections에
+																		// 추가
+
+						Platform.runLater(
+								() -> displayText("[닉네임이 설정되었습니다.]" + '\n' + "[참여 인원 수: " + connections.size() + "]"));
+						// 현재 클라이언트 개수
 
 					} catch (IOException e) { // accept() 예외 발생시
 						if (!serverSocket.isClosed()) {
@@ -113,19 +110,19 @@ public class ChattingServer extends Application {
 
 		try {
 			Iterator<Client> iterator = connections.iterator(); // 반복자 호출
-			while (iterator.hasNext()) {
+			while (iterator.hasNext()) { //확인
 				Client client = iterator.next();
 				client.socket.close();
 				iterator.remove();
-			}
+			} //객체 삭제
 
 			if (serverSocket != null && !serverSocket.isClosed()) {
 				serverSocket.close();
-			}
-
+			} //서버소켓 닫기
+			
 			if (executorService != null && !executorService.isShutdown()) {
 				executorService.shutdown();
-			}
+			} //스레드 닫기
 
 			Platform.runLater(() -> { // 자바FX UI 접근
 				displayText("[서버 멈춤]");
@@ -142,7 +139,6 @@ public class ChattingServer extends Application {
 		Client(Socket socket, String nickname) { // 생성자
 			this.socket = socket;
 			this.nickname = nickname;
-
 			receive();
 		}
 
@@ -166,12 +162,12 @@ public class ChattingServer extends Application {
 							Platform.runLater(() -> displayText(message));
 
 							String data = new String(byteArr, 0, readByteCount, "utf-8");
-							//문자열 변환, byteArr의 0 인덱스부터 읽은 바이트 수 만큼 문자열로 변환 
-							
-							data = Client.this.nickname+ " : " + data;
+							// 문자열 변환, byteArr의 0 인덱스부터 읽은 바이트 수 만큼 문자열로 변환
+
+							data = Client.this.nickname + " : " + data;
 							for (Client client : connections) {
 								client.send(data);
-
+								//내용 보내기
 							}
 						}
 
@@ -217,8 +213,8 @@ public class ChattingServer extends Application {
 		}
 	}
 
+	
 	// UI 생성코드
-
 	TextArea txtDisplay;
 	Button btnStartStop;
 
